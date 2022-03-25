@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "SystemLink Notebooks",
+  "id": "ni-slnotebook-datasource",
+  "metrics": true,
+  "info": {
+    "description": "A Grafana data source plugin for SystemLink Jupyter notebooks",
+    "author": {
+      "name": "Carson Moore",
+      "url": "https://ni.com"
+    },
+    "keywords": ["systemlink", "python", "jupyter"],
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/ni/systemlink-notebook-datasource"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/ni/systemlink-notebook-datasource/blob/main/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "1.0.0",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=8.0.0",
+    "plugins": []
+  }
+}
