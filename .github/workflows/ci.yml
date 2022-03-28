@@ -11,9 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
-      # ---Build & Test---
-
       - uses: actions/checkout@v2
 
       - name: Setup Node.js environment
@@ -46,6 +43,10 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: (Release) Update plugin version
+        if: github.event_name == 'push'
+        run: node update-versions.js
+
       - name: Build and test frontend
         run: yarn build
 
@@ -77,9 +78,13 @@ jobs:
           version: latest
           args: buildAll
 
-      # ---Release---
+      - name: (Release) Package plugin
+        if: github.event_name == 'push'
+        run: |
+          mv dist ni-slnotebook-datasource
+          zip ni-slnotebook-datasource.zip ni-slnotebook-datasource -r
 
-      - name: Run semantic-release
+      - name: (Release) Run semantic-release
         if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
