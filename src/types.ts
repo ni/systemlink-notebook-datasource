@@ -1,24 +1,50 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
-export interface MyQuery extends DataQuery {
-  queryText?: string;
-  constant: number;
+export interface NotebookQuery extends DataQuery {
+  path: string;
+  parameters: any;
+  output: string;
+  cacheTimeout: number;
 }
 
-export const defaultQuery: Partial<MyQuery> = {
-  constant: 6.5,
+export const defaultQuery: Partial<NotebookQuery> = {
+  path: '',
+  parameters: {},
+  output: '',
+  cacheTimeout: 86400,
 };
 
 /**
  * These are options configured for each DataSource instance
  */
-export interface MyDataSourceOptions extends DataSourceJsonData {
-  path?: string;
-}
+export interface NotebookDataSourceOptions extends DataSourceJsonData {}
 
 /**
  * Value that is used in the backend, but never sent over HTTP to the frontend
  */
-export interface MySecureJsonData {
-  apiKey?: string;
+export interface NotebookSecureJsonData {}
+
+export interface Notebook {
+  id: string;
+  name: string;
+  parameters?: { [key: string]: any };
+  metadata?: { [key: string]: any };
+  workspace: string;
+}
+
+export interface Execution {
+  notebookPath: string;
+  parameters: { [key: string]: any };
+  metadata: { [key: string]: any };
+  status: 'QUEUED' | 'IN_PROGRESS' | 'FAILED' | 'SUCCEEDED' | 'CANCELED' | 'TIMED_OUT';
+  exception: string;
+  result: any;
+  cachedResult: boolean;
+}
+
+export interface Parameter {
+  id: string;
+  display_name: string;
+  type: string;
+  options?: string[];
 }
