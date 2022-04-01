@@ -24,15 +24,13 @@
     "@testing-library/jest-dom": "5.4.0",
     "@testing-library/react": "^10.0.2",
     "@types/lodash": "latest",
-    "ajv": "^6.12.6",
     "edit-json-file": "^1.7.0",
     "semantic-release": "^19.0.2",
-    "smart-webcomponents-react": "^12.0.0"
+    "smart-webcomponents-react": "^12.0.0",
+    "@grafana/runtime": "^8.4.4",
+    "ajv": "^8.11.0"
   },
   "engines": {
     "node": ">=14"
-  },
-  "dependencies": {
-    "@grafana/runtime": "^8.4.4"
   }
 }

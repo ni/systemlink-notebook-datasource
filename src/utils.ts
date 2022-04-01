@@ -7,22 +7,9 @@ export const timeout = (ms: number): Promise<void> => {
   });
 };
 
-export const formatPath = (path: string): string => {
-  if (!path) {
-    return '';
-  }
-
-  if (path.startsWith('_shared')) {
-    return path.substring(1);
-  }
-
-  return path.substring(path.indexOf('/'));
-};
-
 export const formatNotebookOption = (notebook: Notebook): SelectableValue => {
-  const path = notebook.path;
   return {
-    label: formatPath(path),
-    value: path,
+    label: notebook.name,
+    value: notebook.id,
   };
 };

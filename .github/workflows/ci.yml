@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.2
         with:
-          node-version: "14.x"
+          node-version: "16.x"
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
@@ -82,7 +82,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           mv dist ni-slnotebook-datasource
-          zip ni-slnotebook-datasource.zip ni-slnotebook-datasource -r
+          zip systemlink-notebook-datasource.zip ni-slnotebook-datasource -r
 
       - name: (Release) Run semantic-release
         if: github.event_name == 'push'

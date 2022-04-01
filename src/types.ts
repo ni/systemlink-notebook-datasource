@@ -1,14 +1,16 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface NotebookQuery extends DataQuery {
-  path: string;
+  id: string;
+  workspace: string;
   parameters: any;
   output: string;
   cacheTimeout: number;
 }
 
 export const defaultQuery: Partial<NotebookQuery> = {
-  path: '',
+  id: '',
+  workspace: '',
   parameters: {},
   output: '',
   cacheTimeout: 86400,
@@ -27,17 +29,21 @@ export interface NotebookSecureJsonData {}
 export interface Notebook {
   id: string;
   name: string;
-  parameters?: { [key: string]: any };
-  metadata?: { [key: string]: any };
   workspace: string;
 }
 
-export interface Execution {
-  notebookPath: string;
+export interface NotebookWithMetadata extends Notebook {
   parameters: { [key: string]: any };
   metadata: { [key: string]: any };
+}
+
+export const isNotebookWithMeta = (notebook: Notebook | NotebookWithMetadata): notebook is NotebookWithMetadata =>
+  (notebook as NotebookWithMetadata).metadata !== undefined;
+
+export interface Execution {
+  notebookId: string;
+  parameters: { [key: string]: any };
   status: 'QUEUED' | 'IN_PROGRESS' | 'FAILED' | 'SUCCEEDED' | 'CANCELED' | 'TIMED_OUT';
-  exception: string;
   result: any;
   cachedResult: boolean;
 }

@@ -3,7 +3,6 @@ import { NotebookDataSourceOptions, NotebookQuery } from './types';
 
 import { DataSourceInstanceSettings, DataQueryRequest, FieldType } from '@grafana/data';
 
-const postMock = jest.fn((url, body) => mockQueryNotebooksResponse());
 const replaceMock = jest.fn((a: string, ...rest: any) => a);
 const executeMock = jest.fn((options) => mockNotebookApiResponse(options));
 
@@ -16,7 +15,6 @@ jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getBackendSrv: () => ({
     datasourceRequest: executeMock,
-    post: postMock,
   }),
   getTemplateSrv: () => ({
     replace: replaceMock,
@@ -34,7 +32,8 @@ describe('Notebook data source', () => {
   } as unknown as DataSourceInstanceSettings<NotebookDataSourceOptions>;
   const mockQuery = {
     refId: '123',
-    path: '/test/notebook',
+    id: '1234',
+    workspace: '1234',
     parameters: null,
     output: 'test_output',
     cacheTimeout: 0,
@@ -231,7 +230,8 @@ describe('Notebook data source', () => {
       const options = {
         targets: [
           {
-            path: successfulNotebookPath,
+            id: successfulNotebookPath,
+            workspace: '1234',
             parameters: [],
             output: 'test',
           },
@@ -251,12 +251,14 @@ describe('Notebook data source', () => {
       const options = {
         targets: [
           {
-            path: successfulNotebookPath,
+            id: successfulNotebookPath,
+            workspace: '1234',
             parameters: [],
             output: 'test',
           },
           {
-            path: successfulNotebookPath,
+            id: successfulNotebookPath,
+            workspace: '1234',
             parameters: [],
             output: 'test',
           },
@@ -281,7 +283,8 @@ describe('Notebook data source', () => {
       const options = {
         targets: [
           {
-            path: failedNotebookPath,
+            id: failedNotebookPath,
+            workspace: '1234',
             parameters: [],
             output: 'test',
           },
@@ -295,7 +298,8 @@ describe('Notebook data source', () => {
       const options = {
         targets: [
           {
-            path: invalidNotebookPath,
+            id: invalidNotebookPath,
+            workspace: '1234',
             parameters: [],
             output: 'test',
           },
@@ -309,7 +313,8 @@ describe('Notebook data source', () => {
       const options = {
         targets: [
           {
-            path: successfulNotebookPath,
+            id: successfulNotebookPath,
+            workspace: '1234',
             parameters: [],
             output: 'test',
             cacheTimeout: 12345,
@@ -322,42 +327,18 @@ describe('Notebook data source', () => {
       expect(executeMock.mock.calls[0][0].data[0]).toEqual(expect.objectContaining({ resultCachePeriod: 12345 }));
     });
   });
-
-  describe('queryNotebooks', () => {
-    it('only returns v2 notebook', async () => {
-      const path = '';
-
-      let result = await ds.queryNotebooks(path);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].path).toBe('good');
-    });
-
-    it('includes path in query', async () => {
-      const path = 'testPath';
-
-      await ds.queryNotebooks(path);
-
-      expect(postMock).toBeCalledWith(
-        expect.any(String),
-        expect.objectContaining({ filter: expect.stringContaining(path) })
-      );
-    });
-  });
 });
 
 // @ts-ignore
 function mockNotebookApiResponse(options: any) {
   switch (options.url) {
-    case 'http://test/ninbexec/v2/executions':
+    case 'http://test/ninbexecution/v1/executions':
       return {
-        data: [
-          {
-            id: options.data && options.data.length && options.data[0].notebookPath,
-          },
-        ],
+        data: {
+          executions: [{ id: options.data && options.data.length && options.data[0].notebookId }],
+        },
       };
-    case `http://test/ninbexec/v2/executions/${successfulNotebookPath}`:
+    case `http://test/ninbexecution/v1/executions/${successfulNotebookPath}`:
       return {
         data: {
           status: 'SUCCEEDED',
@@ -372,14 +353,14 @@ function mockNotebookApiResponse(options: any) {
           },
         },
       };
-    case `http://test/ninbexec/v2/executions/${failedNotebookPath}`:
+    case `http://test/ninbexecution/v1/executions/${failedNotebookPath}`:
       return {
         data: {
           status: 'FAILED',
           exception: 'a python exception',
         },
       };
-    case `http://test/ninbexec/v2/executions/${invalidNotebookPath}`:
+    case `http://test/ninbexecution/v1/executions/${invalidNotebookPath}`:
       return {
         data: {
           status: 'SUCCEEDED',
@@ -399,17 +380,4 @@ function mockNotebookApiResponse(options: any) {
     default:
       return {};
   }
-}
-
-function mockQueryNotebooksResponse() {
-  return {
-    notebooks: [
-      { path: 'bad', metadata: { version: 1 } },
-      {
-        path: 'good',
-        metadata: { version: 2, parameters: [{ id: 'good', display_name: 'test me', options: ['a', 'b', 'c'] }] },
-      },
-      { path: 'also bad', metadata: { version: 3 } },
-    ],
-  };
 }

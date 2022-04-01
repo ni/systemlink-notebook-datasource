@@ -4,7 +4,7 @@
  */
 import defaults from 'lodash/defaults';
 import range from 'lodash/range';
-import Ajv from 'ajv';
+import Ajv, { ValidateFunction } from 'ajv';
 
 import {
   DataQueryRequest,
@@ -17,28 +17,24 @@ import {
   toUtc,
 } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv, FetchError } from '@grafana/runtime';
-import {
-  NotebookQuery,
-  NotebookDataSourceOptions,
-  defaultQuery,
-  Notebook,
-  Execution,
-} from './types';
+import { NotebookQuery, NotebookDataSourceOptions, defaultQuery, Notebook, Execution } from './types';
 import { timeout } from './utils';
 
-import * as schema from './data/schema.json';
 import { NotebookVariableSupport } from 'variables';
+import { notebookMetadataSchema, executionResultSchema } from 'data/schema';
 
 export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceOptions> {
   url?: string;
-  validate: Ajv.ValidateFunction;
+  private validateExecution: ValidateFunction<any>;
+  private validateMetadata: ValidateFunction<any>;
 
   constructor(instanceSettings: DataSourceInstanceSettings<NotebookDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
 
-    let ajv = new Ajv();
-    this.validate = ajv.compile(schema);
+    let ajv = new Ajv({ strictTuples: false });
+    this.validateExecution = ajv.compile(executionResultSchema);
+    this.validateMetadata = ajv.compile(notebookMetadataSchema);
 
     this.variables = new NotebookVariableSupport();
   }
@@ -52,15 +48,17 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
     for (const target of options.targets) {
       const query = defaults(target, defaultQuery);
 
-      if (!query.path) {
+      if (!query.id || !query.workspace) {
         continue;
       }
 
       const parameters = this.replaceParameterVariables(query.parameters, options);
-      const execution = await this.executeNotebook(query.path, parameters, query.cacheTimeout);
+      const execution = await this.executeNotebook(query.id, query.workspace, parameters, query.cacheTimeout);
       if (execution.status === 'SUCCEEDED') {
-        if (this.validate(execution.result)) {
-          const result = execution.result.result.find((result: any) => result.id === query.output);
+        if (this.validateExecution(execution.result)) {
+          const result = query.output
+            ? execution.result.result.find((result: any) => result.id === query.output)
+            : execution.result.result[0];
           if (!result) {
             throw new Error(`The output of the notebook does not contain an output with id '${query.output}'.`);
           } else {
@@ -162,15 +160,15 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
     return result;
   }
 
-  private async executeNotebook(notebookPath: string, parameters: any, cacheTimeout: number) {
+  private async executeNotebook(notebookId: string, workspaceId: string, parameters: any, cacheTimeout: number) {
     try {
       const response = await getBackendSrv().datasourceRequest({
-        url: this.url + '/ninbexec/v2/executions',
+        url: this.url + '/ninbexecution/v1/executions',
         method: 'POST',
-        data: [{ notebookPath, parameters, resultCachePeriod: cacheTimeout }],
+        data: [{ notebookId, workspaceId, parameters, resultCachePeriod: cacheTimeout }],
       });
 
-      return this.handleNotebookExecution(response.data[0].id);
+      return this.handleNotebookExecution(response.data.executions[0].id);
     } catch (e) {
       // TODO: use fetch method from getBackendSrv to get properly typed error
       throw new Error(
@@ -183,7 +181,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
 
   private async handleNotebookExecution(id: string): Promise<Execution> {
     const response = await getBackendSrv().datasourceRequest({
-      url: this.url + '/ninbexec/v2/executions/' + id,
+      url: this.url + '/ninbexecution/v1/executions/' + id,
       method: 'GET',
     });
     const execution: Execution = response.data;
@@ -209,6 +207,20 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
     }
   }
 
+  async getNotebookMetadata(id: string): Promise<{ metadata: any; parameters: any }> {
+    let response;
+    try {
+      response = await getBackendSrv().get(this.url + `/ninbparser/v1/notebook/${id}`);
+    } catch (e) {
+      const { status, statusText } = e as FetchError;
+      throw new Error(`The query for notebook metadata failed with error ${status}: ${statusText}.`);
+    }
+    if (!this.validateMetadata(response)) {
+      throw new Error('The metadata of the notebook does not match the expected SystemLink format.');
+    }
+    return { metadata: response.metadata, parameters: response.parameters };
+  }
+
   async queryTestResultValues(field: string, startsWith: string): Promise<string[]> {
     const data = { field, startsWith };
     const values = await getBackendSrv().post(this.url + '/nitestmonitor/v2/query-result-values', data);
@@ -217,9 +229,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
   }
 
   async testDatasource() {
-    return {
-      status: 'success',
-      message: 'Success',
-    };
+    await getBackendSrv().get(this.url + '/niauth/v1/auth');
+    return { status: 'success', message: 'Success' };
   }
 }

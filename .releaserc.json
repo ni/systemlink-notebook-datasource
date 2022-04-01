@@ -4,7 +4,7 @@
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
       ["@semantic-release/github", {
-        "assets": "ni-slnotebook-datasource.zip"
+        "assets": "systemlink-notebook-datasource.zip"
       }],
       ["@semantic-release/git", {
         "assets": ["package.json", "src/plugin.json"],
