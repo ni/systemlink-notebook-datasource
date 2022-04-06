@@ -45,6 +45,13 @@ export class QueryEditor extends PureComponent<Props, State> {
     try {
       const notebooks = await this.props.datasource.queryNotebooks('');
       this.setState({ notebooks, loadingNotebooks: false });
+
+      if (this.props.query.id) {
+        const notebook = this.getNotebook(this.props.query.id);
+        if (notebook) {
+          await this.populateNotebookMetadata(notebook);
+        }
+      }
     } catch (e) {
       const error: string = (e as Error).message || 'SystemLink Notebook datasource failed to connect.';
       this.setState({ queryError: error, loadingNotebooks: false });
@@ -55,13 +62,13 @@ export class QueryEditor extends PureComponent<Props, State> {
     return this.state.notebooks.find((notebook) => notebook.id === id);
   };
 
-  getNotebookMetadata = async (id: string) => {
+  populateNotebookMetadata = async (notebook: Notebook) => {
     try {
       this.setState({ loadingMetadata: true, queryError: '' });
-      return await this.props.datasource.getNotebookMetadata(id);
+      const metadata = await this.props.datasource.getNotebookMetadata(notebook.id);
+      Object.assign(notebook, metadata);
     } catch (e) {
       this.setState({ queryError: (e as Error).message });
-      return null;
     } finally {
       this.setState({ loadingMetadata: false });
     }
@@ -77,8 +84,7 @@ export class QueryEditor extends PureComponent<Props, State> {
 
     // Add metadata to notebook if it's not already there
     if (!isNotebookWithMeta(selectedNotebook)) {
-      const metadata = await this.getNotebookMetadata(selectedNotebook.id);
-      Object.assign(selectedNotebook, metadata);
+      await this.populateNotebookMetadata(selectedNotebook);
     }
 
     // We now know the notebook has metadata, but TS can't infer from mutations
