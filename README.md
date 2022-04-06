@@ -1,12 +1,8 @@
-# Grafana Data Source Plugin Template
+# SystemLink Notebook Data Source
 
-[![Build](https://github.com/grafana/grafana-starter-datasource/workflows/CI/badge.svg)](https://github.com/grafana/grafana-starter-datasource/actions?query=workflow%3A%22CI%22)
+[![Build](https://github.com/ni/systemlink-notebook-datasource/workflows/CI/badge.svg)](https://github.com/ni/systemlink-notebook-datasource/actions?query=workflow%3A%22CI%22)
 
-This template is a starting point for building Grafana Data Source Plugins
-
-## What is Grafana Data Source Plugin?
-
-Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
+A Grafana plugin for SystemLink Enterprise, used for executing Jupyter notebooks and retrieving their results.
 
 ## Getting started
 
@@ -34,6 +30,18 @@ Grafana supports a wide range of data sources, including Prometheus, MySQL, and 
    yarn build
    ```
 
+## Connecting to enterprise-dev for local development
+
+The NbParsingService does not have an ingress defined, so you must use port forwarding and [add a proxy route](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#add-a-proxy-route-to-your-plugin) to plugin.json:
+
+```json
+"routes": [
+   {
+      "path": "ninbparser",
+      "url": "http://localhost:<port>/ninbparser"
+   }
+]
+```
 ## Learn more
 
 - [Build a data source plugin tutorial](https://grafana.com/tutorials/build-a-data-source-plugin)
