@@ -1,6 +1,6 @@
 {
   "name": "ni-systemlink-notebook-datasource",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Grafana data source plugin for SystemLink Jupyter notebooks",
   "browserslist": [
     "defaults",
