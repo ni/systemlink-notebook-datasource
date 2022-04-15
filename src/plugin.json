@@ -7,7 +7,7 @@
   "info": {
     "description": "A Grafana data source plugin for SystemLink Jupyter notebooks",
     "author": {
-      "name": "Carson Moore",
+      "name": "NI",
       "url": "https://ni.com"
     },
     "keywords": ["systemlink", "python", "jupyter"],

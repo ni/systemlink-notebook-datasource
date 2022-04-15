@@ -234,7 +234,7 @@ export class QueryEditor extends PureComponent<Props, State> {
             isLoading={this.state.loadingNotebooks}
             onChange={this.onNotebookChange}
             menuPlacement="bottom"
-            maxMenuHeight={110}
+            maxMenuHeight={200}
             placeholder="Select notebook"
             value={selectedNotebook ? formatNotebookOption(selectedNotebook) : undefined}
           />
@@ -245,6 +245,8 @@ export class QueryEditor extends PureComponent<Props, State> {
               <Select
                 options={selectedNotebook.metadata.outputs.map(this.formatOutputOption)}
                 onChange={this.onOutputChange}
+                menuPlacement="bottom"
+                maxMenuHeight={200}
                 value={this.formatOutputOption(
                   selectedNotebook.metadata.outputs.find((output: any) => output.id === query.output)
                 )}
