@@ -94,8 +94,11 @@ export class QueryEditor extends PureComponent<Props, State> {
     const oldNotebook = this.getNotebook(query.id);
     const parameters = pickBy(query.parameters, (value: any, id: string) => {
       const newParam = notebook.metadata.parameters.find((param: any) => param.id === id);
+      if (!newParam) {
+        return false;
+      }
 
-      if (newParam?.options) {
+      if (newParam.options) {
         return (typeof value === 'string' && value.startsWith('$')) || newParam.options.includes(value);
       }
 
