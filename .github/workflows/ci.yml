@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - users/cwaterma/artifactory
   pull_request:
     branches:
       - main
+      - users/cwaterma/artifactory
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,7 +46,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: (Release) Update plugin version
-        if: github.event_name == 'push'
+#         if: github.event_name == 'push'
         run: node update-versions.js
 
       - name: Build and test frontend
@@ -79,7 +81,7 @@ jobs:
           args: buildAll
 
       - name: (Release) Package plugin
-        if: github.event_name == 'push'
+#         if: github.event_name == 'push'
         run: |
           mv dist ni-slnotebook-datasource
           zip systemlink-notebook-datasource.zip ni-slnotebook-datasource -r
@@ -94,7 +96,7 @@ jobs:
 #           download-repository: # optional
 
       - name: (Release) Publish to Artifactory
-        if: github.event_name == 'push'
+#         if: github.event_name == 'push'
         run:
 #           jf rt u systemlink-notebook-datasource.zip https://niartifacts.jfrog.io/ui/repos/tree/General/rnd-generic-adhoc/ni/systemlink/systemlink-notebook-datasource.zip
           curl -H "X-JFrog-Art-Api:${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/ni/systemlink/latest.zip"
