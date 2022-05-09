@@ -61,20 +61,20 @@ jobs:
           fi
 
       - name: Setup Go environment
-        if: steps.check-for-backend.outputs.has-backend == 'true'
+#         if: steps.check-for-backend.outputs.has-backend == 'true'
         uses: actions/setup-go@v2
         with:
           go-version: "1.15"
 
       - name: Test backend
-        if: steps.check-for-backend.outputs.has-backend == 'true'
+#         if: steps.check-for-backend.outputs.has-backend == 'true'
         uses: magefile/mage-action@v1
         with:
           version: latest
           args: coverage
 
       - name: Build backend
-        if: steps.check-for-backend.outputs.has-backend == 'true'
+#         if: steps.check-for-backend.outputs.has-backend == 'true'
         uses: magefile/mage-action@v1
         with:
           version: latest
@@ -98,8 +98,9 @@ jobs:
       - name: (Release) Publish to Artifactory
 #         if: github.event_name == 'push'
         run:
+          curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/latest.zip"
 #           jf rt u systemlink-notebook-datasource.zip https://niartifacts.jfrog.io/ui/repos/tree/General/rnd-generic-adhoc/ni/systemlink/systemlink-notebook-datasource.zip
-          curl -H "X-JFrog-Art-Api:${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/ni/systemlink/latest.zip"
+#           curl -H "X-JFrog-Art-Api:${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/rnd-generic-ci/ni/systemlink/latest.zip"
 
 #       - name: (Release) Run semantic-release
 #         if: github.event_name == 'push'
