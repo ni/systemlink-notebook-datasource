@@ -86,24 +86,8 @@ jobs:
           mv dist ni-slnotebook-datasource
           zip systemlink-notebook-datasource.zip ni-slnotebook-datasource -r
 
-#       - name: (Release) Setup JFrog CLI
-#         if: github.event_name == 'push'
-#         uses: jfrog/setup-jfrog-cli@v2
-#         with:
-#           # JFrog CLI Version
-#           version: # optional, default is 2.14.0
-#           # Remote repository in Artifactory pointing to 'https://releases.jfrog.io/artifactory/jfrog-cli'. Use this parameter in case you don't have an Internet access.
-#           download-repository: # optional
-
       - name: (Release) Publish to Artifactory
 #         if: github.event_name == 'push'
         run:
           curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/latest.zip"
-#           jf rt u systemlink-notebook-datasource.zip https://niartifacts.jfrog.io/ui/repos/tree/General/rnd-generic-adhoc/ni/systemlink/systemlink-notebook-datasource.zip
-#           curl -H "X-JFrog-Art-Api:${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/rnd-generic-ci/ni/systemlink/latest.zip"
-
-#       - name: (Release) Run semantic-release
-#         if: github.event_name == 'push'
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: npx semantic-release
+          curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/${{ github.run_id }}.zip"
