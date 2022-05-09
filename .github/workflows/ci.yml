@@ -88,6 +88,6 @@ jobs:
 
       - name: (Release) Publish to Artifactory
 #         if: github.event_name == 'push'
-        run:
+        run: |
           curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/latest.zip"
           curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/${{ github.run_id }}.zip"
