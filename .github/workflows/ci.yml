@@ -50,7 +50,7 @@ jobs:
           echo 'PLUGIN_VERSION=$(node -pe "JSON.parse(process.argv[1]).version" "$(cat package.json)")' >> $GITHUB_ENV
 
       - name: Print plugin version
-        run: echo "$env.PLUGIN_VERSION"
+        run: echo ${{ env.PLUGIN_VERSION }}
 
       - name: Build and test frontend
         run: yarn build
