@@ -45,7 +45,9 @@ jobs:
 
       - name: (Release) Update plugin version
         if: github.event_name == 'push'
-        run: node update-versions.js
+        run: |
+          node update-versions.js
+          echo 'PLUGIN_VERSION=$(node -pe "JSON.parse(process.argv[1]).version" "$(cat package.json)")' >> $GITHUB_ENV
 
       - name: Build and test frontend
         run: yarn build
@@ -84,8 +86,8 @@ jobs:
           mv dist ni-slnotebook-datasource
           zip systemlink-notebook-datasource.zip ni-slnotebook-datasource -r
 
-      - name: (Release) Run semantic-release
+      - name: (Release) Publish to Artifactory
         if: github.event_name == 'push'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: |
+          curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/latest.zip"
+          curl -H "Authorization:Bearer ${{ secrets.NIARTIFACTS_TOKEN }}" -T systemlink-notebook-datasource.zip "https://niartifacts.jfrog.io/artifactory/rnd-generic-ci/ni/systemlink/systemlink-notebook-datasource/${{ env.PLUGIN_VERSION }}.zip"
