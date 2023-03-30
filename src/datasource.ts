@@ -17,7 +17,14 @@ import {
   toUtc,
 } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv, FetchError } from '@grafana/runtime';
-import { NotebookQuery, NotebookDataSourceOptions, defaultQuery, Notebook, Execution } from './types';
+import {
+  NotebookQuery,
+  NotebookDataSourceOptions,
+  defaultQuery,
+  Notebook,
+  Execution,
+  ExecutionPriority,
+} from './types';
 import { timeout } from './utils';
 
 import { NotebookVariableSupport } from 'variables';
@@ -165,7 +172,9 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
       const response = await getBackendSrv().datasourceRequest({
         url: this.url + '/ninbexecution/v1/executions',
         method: 'POST',
-        data: [{ notebookId, workspaceId, parameters, resultCachePeriod: cacheTimeout }],
+        data: [
+          { notebookId, workspaceId, parameters, resultCachePeriod: cacheTimeout, priority: ExecutionPriority.MEDIUM },
+        ],
       });
 
       return this.handleNotebookExecution(response.data.executions[0].id);

@@ -48,6 +48,12 @@ export interface Execution {
   cachedResult: boolean;
 }
 
+export enum ExecutionPriority {
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW',
+  HIGH = 'HIGH',
+}
+
 export interface Parameter {
   id: string;
   display_name: string;
