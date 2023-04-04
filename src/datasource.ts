@@ -205,7 +205,7 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
   async queryNotebooks(path: string): Promise<Notebook[]> {
     const filter = `name.Contains("${path}") && type == "Notebook"`;
     try {
-      const response = await getBackendSrv().post(this.url + '/niapp/v1/webapps/query', { filter });
+      const response = await getBackendSrv().post(this.url + '/niapp/v1/webapps/query', { filter, take: 1000 });
       return response.webapps as Notebook[];
     } catch (e) {
       throw new Error(
