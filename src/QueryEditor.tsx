@@ -3,9 +3,8 @@
  * when editing a Grafana panel.
  */
 import _ from 'lodash';
-import pickBy from 'lodash/pickBy';
 import React, { PureComponent } from 'react';
-import { Alert, Field, Input, Select, Label, IconButton, TextArea, LoadingPlaceholder, AsyncSelect, LoadOptionsCallback, InlineField } from '@grafana/ui';
+import { Alert, Field, Input, Select, Label, IconButton, TextArea, LoadingPlaceholder, AsyncSelect, LoadOptionsCallback } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { getTemplateSrv } from '@grafana/runtime';
 import { DataSource } from './datasource';
@@ -45,7 +44,7 @@ export class QueryEditor extends PureComponent<Props, State> {
     this.setState({ queryError: error });
   }
 
-  loadTableOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
+  loadNotebookOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
     this.props.datasource
       .queryNotebooks(query)  
       .then((notebooks) => cb?.(notebooks.map(formatNotebookOption)))
@@ -99,7 +98,7 @@ export class QueryEditor extends PureComponent<Props, State> {
 
     // Preseve matching parameter values
     const oldNotebook = this.getNotebook(query.id);
-    const parameters = pickBy(query.parameters, (value: any, id: string) => {
+    const parameters = _.pickBy(query.parameters, (value: any, id: string) => {
       const newParam = notebook.metadata.parameters.find((param: any) => param.id === id);
       if (!newParam) {
         return false;
@@ -239,19 +238,17 @@ export class QueryEditor extends PureComponent<Props, State> {
     return (
       <div className="sl-notebook-query-editor">
         <Field label="Notebook" className="sl-notebook-selector">
-          <InlineField label="Notebook">
-            <AsyncSelect
-              cacheOptions={false}
-              defaultOptions
-              loadOptions={this.loadTableOptions}
-              onChange={this.onNotebookChange}
-              placeholder="Select notebook"
-              menuPlacement="bottom"
-              maxMenuHeight={200}
-              width={30}
-              value={selectedNotebook ? formatNotebookOption(selectedNotebook) : undefined}
-            />
-          </InlineField>
+          <AsyncSelect
+            cacheOptions={false}
+            defaultOptions
+            loadOptions={this.loadNotebookOptions}
+            onChange={this.onNotebookChange}
+            placeholder="Select notebook"
+            menuPlacement="bottom"
+            maxMenuHeight={200}
+            width={30}
+            value={selectedNotebook ? formatNotebookOption(selectedNotebook) : undefined}
+          />
         </Field>
         {notebookMetaLoaded && !this.state.loadingMetadata && (
           <>
