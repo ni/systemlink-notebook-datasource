@@ -28,7 +28,7 @@ type State = {
 };
 
 export class QueryEditor extends PureComponent<Props, State> {
-  notebookMetadata: Record<string, NotebookWithMetadata> = {};
+  notebookMetadata: Record<string, Notebook> = {};
 
   constructor(props: Props) {
     super(props);
@@ -47,7 +47,10 @@ export class QueryEditor extends PureComponent<Props, State> {
   loadNotebookOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
     this.props.datasource
       .queryNotebooks(query)  
-      .then((notebooks) => cb?.(notebooks.map(formatNotebookOption)))
+      .then((notebooks) => {
+        notebooks.forEach(notebook => this.notebookMetadata[notebook.id] = notebook);
+        cb?.(notebooks.map(formatNotebookOption));
+      })
       .catch(this.handleError);
   }, 300);
 
