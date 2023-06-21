@@ -216,6 +216,19 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
     }
   }
 
+  async getNotebook(id: string): Promise<Notebook> {
+    try {
+      const response = await getBackendSrv().get(this.url + `/niapp/v1/webapps/${id}`);
+      return response as Notebook;
+    } catch (e) {
+      throw new Error(
+        `The query for SystemLink notebooks failed with error ${(e as FetchError).status}: ${
+          (e as FetchError).statusText
+        }.`
+      );
+    }
+  }
+
   async getNotebookMetadata(id: string): Promise<{ metadata: any; parameters: any }> {
     let response;
     try {

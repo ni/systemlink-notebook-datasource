@@ -57,7 +57,7 @@ export class QueryEditor extends PureComponent<Props, State> {
   async componentDidMount() {
     try {
       if (this.props.query.id) {
-        const notebook = this.getNotebook(this.props.query.id);
+        const notebook = await this.props.datasource.getNotebook(this.props.query.id);
         if (notebook) {
           await this.populateNotebookMetadata(notebook);
         }
@@ -249,7 +249,6 @@ export class QueryEditor extends PureComponent<Props, State> {
             placeholder="Select notebook"
             menuPlacement="bottom"
             maxMenuHeight={200}
-            width={30}
             value={selectedNotebook ? formatNotebookOption(selectedNotebook) : undefined}
           />
         </Field>
