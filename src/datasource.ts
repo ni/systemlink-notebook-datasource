@@ -205,8 +205,21 @@ export class DataSource extends DataSourceApi<NotebookQuery, NotebookDataSourceO
   async queryNotebooks(path: string): Promise<Notebook[]> {
     const filter = `name.Contains("${path}") && type == "Notebook"`;
     try {
-      const response = await getBackendSrv().post(this.url + '/niapp/v1/webapps/query', { filter, take: 1000 });
+      const response = await getBackendSrv().post(this.url + '/niapp/v1/webapps/query', { filter, take: 5 });
       return response.webapps as Notebook[];
+    } catch (e) {
+      throw new Error(
+        `The query for SystemLink notebooks failed with error ${(e as FetchError).status}: ${
+          (e as FetchError).statusText
+        }.`
+      );
+    }
+  }
+
+  async getNotebook(id: string): Promise<Notebook> {
+    try {
+      const response = await getBackendSrv().get(this.url + `/niapp/v1/webapps/${id}`);
+      return response as Notebook;
     } catch (e) {
       throw new Error(
         `The query for SystemLink notebooks failed with error ${(e as FetchError).status}: ${

@@ -2,9 +2,9 @@
  * QueryEditor is a React component that implements the UI for building a notebook query
  * when editing a Grafana panel.
  */
-import pickBy from 'lodash/pickBy';
+import _ from 'lodash';
 import React, { PureComponent } from 'react';
-import { Alert, Field, Input, Select, Label, IconButton, TextArea, LoadingPlaceholder } from '@grafana/ui';
+import { Alert, Field, Input, Select, Label, IconButton, TextArea, LoadingPlaceholder, AsyncSelect, LoadOptionsCallback } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { getTemplateSrv } from '@grafana/runtime';
 import { DataSource } from './datasource';
@@ -22,51 +22,60 @@ import { formatNotebookOption } from 'utils';
 
 type Props = QueryEditorProps<DataSource, NotebookQuery, NotebookDataSourceOptions>;
 type State = {
-  notebooks: Array<Notebook | NotebookWithMetadata>;
-  loadingNotebooks: boolean;
   loadingMetadata: boolean;
   queryError: string;
   showTextQuery: boolean;
 };
 
 export class QueryEditor extends PureComponent<Props, State> {
+  notebookMetadata: Record<string, Notebook> = {};
+
   constructor(props: Props) {
     super(props);
     this.state = {
-      notebooks: [],
-      loadingNotebooks: true,
       loadingMetadata: false,
       queryError: '',
       showTextQuery: false,
     };
   }
 
+  handleError = (e: Error) => {
+    const error: string = (e as Error).message || 'SystemLink Notebook datasource failed to connect.';
+    this.setState({ queryError: error });
+  }
+
+  loadNotebookOptions = _.debounce((query: string, cb?: LoadOptionsCallback<string>) => {
+    this.props.datasource
+      .queryNotebooks(query)  
+      .then((notebooks) => {
+        notebooks.forEach(notebook => this.notebookMetadata[notebook.id] = notebook);
+        cb?.(notebooks.map(formatNotebookOption));
+      })
+      .catch(this.handleError);
+  }, 300);
+
   async componentDidMount() {
     try {
-      const notebooks = await this.props.datasource.queryNotebooks('');
-      this.setState({ notebooks, loadingNotebooks: false });
-
       if (this.props.query.id) {
-        const notebook = this.getNotebook(this.props.query.id);
+        const notebook = await this.props.datasource.getNotebook(this.props.query.id);
         if (notebook) {
           await this.populateNotebookMetadata(notebook);
         }
       }
     } catch (e) {
-      const error: string = (e as Error).message || 'SystemLink Notebook datasource failed to connect.';
-      this.setState({ queryError: error, loadingNotebooks: false });
+      this.handleError(e as Error);
     }
   }
 
   getNotebook = (id: string) => {
-    return this.state.notebooks.find((notebook) => notebook.id === id);
+    return this.notebookMetadata[id];
   };
 
   populateNotebookMetadata = async (notebook: Notebook) => {
     try {
       this.setState({ loadingMetadata: true, queryError: '' });
       const metadata = await this.props.datasource.getNotebookMetadata(notebook.id);
-      Object.assign(notebook, metadata);
+      this.notebookMetadata[notebook.id] = Object.assign(notebook, metadata);
     } catch (e) {
       this.setState({ queryError: (e as Error).message });
     } finally {
@@ -92,7 +101,7 @@ export class QueryEditor extends PureComponent<Props, State> {
 
     // Preseve matching parameter values
     const oldNotebook = this.getNotebook(query.id);
-    const parameters = pickBy(query.parameters, (value: any, id: string) => {
+    const parameters = _.pickBy(query.parameters, (value: any, id: string) => {
       const newParam = notebook.metadata.parameters.find((param: any) => param.id === id);
       if (!newParam) {
         return false;
@@ -232,13 +241,14 @@ export class QueryEditor extends PureComponent<Props, State> {
     return (
       <div className="sl-notebook-query-editor">
         <Field label="Notebook" className="sl-notebook-selector">
-          <Select
-            options={this.state.notebooks.map(formatNotebookOption)}
-            isLoading={this.state.loadingNotebooks}
+          <AsyncSelect
+            cacheOptions={false}
+            defaultOptions
+            loadOptions={this.loadNotebookOptions}
             onChange={this.onNotebookChange}
+            placeholder="Select notebook"
             menuPlacement="bottom"
             maxMenuHeight={200}
-            placeholder="Select notebook"
             value={selectedNotebook ? formatNotebookOption(selectedNotebook) : undefined}
           />
         </Field>
